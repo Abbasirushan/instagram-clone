@@ -26,8 +26,9 @@ import usePostStore from "../../store/postStore";
 import useUserProfileStore from "../../store/userProfileStore";
 import { useLocation } from "react-router-dom";
 import { addDoc, arrayUnion, collection, doc, updateDoc } from "firebase/firestore";
-import { firestore, storage } from "../../firebase/firebase";
-import { getDownloadURL, ref, uploadString } from "firebase/storage";
+import { firestore} from "../../firebase/firebase";
+import { uploadImageToCloudinary } from "../../utils/cloudinary";
+// import { getDownloadURL, ref, uploadString } from "firebase/storage";
 
 const CreatePost = () => {
 	const { isOpen, onOpen, onClose } = useDisclosure();
@@ -145,12 +146,11 @@ function useCreatePost() {
 		try {
 			const postDocRef = await addDoc(collection(firestore, "posts"), newPost);
 			const userDocRef = doc(firestore, "users", authUser.uid);
-			const imageRef = ref(storage, `posts/${postDocRef.id}`);
+			
+			// Upload image to Cloudinary
+			const downloadURL = await uploadImageToCloudinary(selectedFile);
 
 			await updateDoc(userDocRef, { posts: arrayUnion(postDocRef.id) });
-			await uploadString(imageRef, selectedFile, "data_url");
-			const downloadURL = await getDownloadURL(imageRef);
-
 			await updateDoc(postDocRef, { imageURL: downloadURL });
 
 			newPost.imageURL = downloadURL;

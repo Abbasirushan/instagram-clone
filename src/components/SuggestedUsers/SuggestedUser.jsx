@@ -4,6 +4,11 @@ import useAuthStore from "../../store/authStore";
 import { Link } from "react-router-dom";
 
 const SuggestedUser = ({ user, setUser }) => {
+	// Check if user is null or undefined
+	if (!user) {
+		return null; // or return a loading state or a placeholder
+	}
+
 	const { isFollowing, isUpdating, handleFollowUser } = useFollowUser(user.uid);
 	const authUser = useAuthStore((state) => state.user);
 
@@ -30,7 +35,7 @@ const SuggestedUser = ({ user, setUser }) => {
 						</Box>
 					</Link>
 					<Box fontSize={11} color={"gray.500"}>
-						{user.followers.length} followers
+						{user.followers?.length || 0} followers
 					</Box>
 				</VStack>
 			</Flex>
