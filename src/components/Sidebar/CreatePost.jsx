@@ -36,10 +36,12 @@ const CreatePost = () => {
 	const { handleImageChange, selectedFile, setSelectedFile } = usePreviewImg();
 	const showToast = useShowToast();
 	const { isLoading, handleCreatePost } = useCreatePost();
+	const [uploadedImage, setUplaoadedImage] = useState("")
 
 	const handlePostCreation = async () => {
 		try {
-			await handleCreatePost(selectedFile, caption);
+			await handleCreatePost(uploadedImage?.url, caption);
+			console.log("UPLOADED...", uploadedImage?.url)
 			onClose();
 			setCaption("");
 			setSelectedFile(null);
@@ -47,6 +49,16 @@ const CreatePost = () => {
 			showToast("Error", error.message, "error");
 		}
 	};
+
+	let uploadWidget = cloudinary.createUploadWidget({
+		cloudName: 'dihhgkyxr',
+		uploadPreset: 'insta_clone'
+	  }, (error, result) => {
+		if (!error && result && result.event === "success") {
+		  console.log('Done! Here is the image info: ', result.info);
+		  setUplaoadedImage(result?.info)
+		}
+	  })
 
 	return (
 		<>
@@ -85,8 +97,10 @@ const CreatePost = () => {
 							value={caption}
 							onChange={(e) => setCaption(e.target.value)}
 						/>
-
-						<Input type='file' hidden ref={imageRef} onChange={handleImageChange} />
+<Button mr={3} onClick={() => uploadWidget.open()} isLoading={isLoading}>
+							Upload
+						</Button>
+						{/* <Input type='file' hidden ref={imageRef} onChange={handleImageChange} /> */}
 
 						<BsFillImageFill
 							onClick={() => imageRef.current.click()}
@@ -130,7 +144,7 @@ function useCreatePost() {
 	const userProfile = useUserProfileStore((state) => state.userProfile);
 	const { pathname } = useLocation();
 
-	const handleCreatePost = async (selectedFile, caption) => {
+	const handleCreatePost = async (selectedFile, caption, imageURL) => {
 		if (isLoading) return;
 		if (!selectedFile) throw new Error("Please select an image");
 		setIsLoading(true);
@@ -140,6 +154,7 @@ function useCreatePost() {
 			comments: [],
 			createdAt: Date.now(),
 			createdBy: authUser.uid,
+			imageURL: selectedFile ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjCoUtOal33JWLqals1Wq7p6GGCnr3o-lwpQ&s"
 		};
 
 		try {
